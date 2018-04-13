@@ -1,8 +1,24 @@
 let fs = require('fs')
-let str = fs.readFileSync('txt3.txt', 'utf8').replace(/\n/g, ' ')
+let str = fs.readFileSync('txt.txt', 'utf8').replace(/\n/g, ' ')
 let array = str.split(' ').filter(input => input)
+while (true) {//删掉注释先
+	if (array.indexOf('/*')===-1){
+		break
+	}
+	if (array.indexOf('/*') !== -1) {//如果找到了注释符号的起始符号
+		if (array.indexOf('*/') !== -1) {//既找到开始符又找到结束符，name删掉
+			array.splice(array.indexOf('/*'), array.indexOf('*/') - array.indexOf('/*') + 1)//去掉注释		
+		} else {//没找到结束符号，暴力全删
+			array.splice(array.indexOf('/*'))
+		}
+	}
+	if(array.indexOf('/*')===-1&&array.indexOf('*/')!==-1){
+		throw new Error('你他妈瞎注释')
+	}
+}
 let printArray = []
 let countArray = []
+let constantArr = []
 let printStr = ''
 let people = {
 	name: '百威',
@@ -24,8 +40,8 @@ function isIdentifier(str) {
 	var reg = /^[A-Za-z0-9_]+$/
 	return reg.test(str)
 }
-function singleChar(str,flag) {
-	if(!flag){
+function singleChar(str, flag) {
+	if (!flag) {
 		return false
 	}
 	switch (str) {
@@ -75,8 +91,8 @@ function singleChar(str,flag) {
 			break
 	}
 }
-function doubleChar(str,flag) {
-	if(!flag){
+function doubleChar(str, flag) {
+	if (!flag) {
 		return false
 	}
 	switch (str) {
@@ -98,7 +114,7 @@ function doubleChar(str,flag) {
 	}
 }
 
-console.log(`姓名：${people.name} 班级：${people.banji} 学号：${people.number}`)
+console.log(`姓名：${people.name} 班级：${people.banji} 学号：${people.number}\n\n`)
 //console.log(str)
 //console.log(array)
 for (let i = 0; i < array.length; i++) {
@@ -143,6 +159,8 @@ for (let i = 0; i < array.length; i++) {
 	let isDouble = false //是不是双界符
 	let doubleStr = '' //声明双界符存储量
 	let singleStr = ''//声明单界符存储量
+	let firstSingleQuoteIndex = -1//第一个单引号的位置
+	let secondSingleQuoteIndex = -1//第二个单引号的位置	
 	if (!mayReservedWord) {
 		for (let j = 0, length = current.length; j < length; j++) {
 			let currentChar = current.substr(j, 1) //每次取出一个字符进行比较
@@ -200,6 +218,31 @@ for (let i = 0; i < array.length; i++) {
 					isSingle = true
 				}
 				// console.log('是什么呢，此时这个j是多少呢',j,current[j],keyIndex,current[keyIndex])	
+			} else if (currentChar === "'") {//等于一个单引号 这里他妈本来是要在下面的，写着写着就上来了
+				// console.log('可能是字符串',currentChar,currentStr) 
+				mayStr = true
+				if (firstSingleQuoteIndex === -1 && secondSingleQuoteIndex === -1) {
+					firstSingleQuoteIndex = j
+				} else if (firstSingleQuoteIndex !== -1 && secondSingleQuoteIndex === -1) {
+					secondSingleQuoteIndex = j
+				}
+				//上面两个if先记录两个单引号的位置，以前以后，下面再进行传入，然后再重置
+				if (firstSingleQuoteIndex !== -1 && secondSingleQuoteIndex !== -1) {
+					// console.log(current.substring(firstSingleQuoteIndex,secondSingleQuoteIndex+1))
+					let saveStr = current.substring(firstSingleQuoteIndex, secondSingleQuoteIndex + 1)
+					let strObj = {}
+					strObj.code = 38
+					if (constantArr.indexOf(saveStr) === -1) {
+						constantArr.push(saveStr)
+						strObj.mark = constantArr.length
+					} else {
+						strObj.mark = constantArr.indexOf(saveStr) + 1
+					}
+					printArray.push(strObj)
+
+					firstSingleQuoteIndex = -1
+					secondSingleQuoteIndex = -1
+				}
 			}
 			//简单的单界符号先判断出来，先避开可能和后一个符号合成双界符的情况
 			// console.log(currentChar)
@@ -208,38 +251,65 @@ for (let i = 0; i < array.length; i++) {
 			// console.log(currentStr)
 
 			let obj2 = {}
+			let innerReservedWord = false//内层判断是保留字，不要做判断标识符和数字，字符串的判断
+			//没遇到界符，第二个测试用例的字符串后无分号进不来这里
 			if (isMeetDelimiter) {
-				console.log(currentStr, '遇到了界符我是这个字符串')
+				// console.log(currentStr, '遇到了界符我是这个字符串')
 				isMeetDelimiter = false
 				//现在的情况是遇到界符就会搞，要内层进行单界符和双界符的判断，不然判断到了他妈是界符就瞎搞，无视了双界符，或者在上面让循环变量自增
 				for (key2 in wordHashCode) {//扫他娘的表，看是不是保留字先
-					console.log(currentStr,key2)
+					// console.log(currentStr,key2)
 					if (key2 === currentStr) {
 						obj2.code = wordHashCode[currentStr]
 						obj2.mark = '-'
-						console.log('前面这两步操作我确实做了，别打我',obj2)						
+						// console.log('前面这两步操作我确实做了，别打我',obj2)						
 						// mayReservedWord = true
 						printArray.push(obj2)
+						innerReservedWord = true
 						break
 					}
 				}
-				if (isNumber(currentStr)) {
-					obj2.code = currentStr
-					obj2.mark = 'number'
-					printArray.push(obj2)
-				} else if (isIdentifier(currentStr)) {
-					obj2.code = currentStr
-					obj2.mark = 'identifier'
-					if(currentStr==='integer'){
-						console.log('操你妈')
+				if (!innerReservedWord) {
+					// console.log(currentStr)
+					if (isNumber(currentStr)) {
+						obj2.code = 37
+						if (constantArr.indexOf(currentStr) === -1) {
+							constantArr.push(currentStr)
+							obj2.mark = constantArr.length
+						} else {
+							obj2.mark = constantArr.indexOf(currentStr) + 1
+						}
+						printArray.push(obj2)
+					} else if (isIdentifier(currentStr)) {
+						obj2.code = 36
+						if (constantArr.indexOf(currentStr) === -1) {
+							// console.log('找不到')
+							// console.log(currentStr,constantArr)
+							constantArr.push(currentStr)
+							obj2.mark = constantArr.length
+						} else {
+							obj2.mark = constantArr.indexOf(currentStr) + 1
+						}
+						printArray.push(obj2)
 					}
-					printArray.push(obj2)
+					//这里判断字符串错了，要在上面判断，单引号那里
+					// else{//就是字符串了
+					// 	obj2.code = 38						
+					// 	if(constantArr.indexOf(currentStr)===-1){
+					// 		constantArr.push(currentStr)
+					// 		obj2.mark = constantArr.length
+					// 	}else{
+					// 		obj2.mark = constantArr.indexOf(currentStr)+1
+					// 	}
+					// 	printArray.push(obj2)
+					// }
 				}
+				innerReservedWord = false
 			}
-			singleChar(singleStr,isSingle)//往后移动，把前面的先比对好在存入界符进打印数组	
-			doubleChar(doubleStr,isDouble)
-			isSingle=false
-			isDouble=false
+			singleChar(singleStr, isSingle)//往后移动，把前面的先比对好在存入界符进打印数组	
+			doubleChar(doubleStr, isDouble)
+			isSingle = false
+			isDouble = false
 			// console.log(currentChar,currentChar==="'")  可以找到单引号
 		}
 	}
@@ -255,4 +325,5 @@ for (let i = 0; i < printArray.length; i++) {
 		printStr += '\n'
 	}
 }
+// console.log(constantArr)
 console.log(printStr)
