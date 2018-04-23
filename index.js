@@ -165,47 +165,6 @@ for (let i = 0; i < array.length; i++) {
 			}
 		}
 	}
-	// for (key in wordHashCode) {
-	// 	if (key === current) {
-	// 		obj.code = wordHashCode[current]
-	// 		obj.mark = '-'
-	// 		mayReservedWord = true
-	// 		break
-	// 	} else {
-	// 		if (isInReserve(current)) {
-	// 			break
-	// 		}
-	// 		if (isNumber(current)) {
-	// 			obj.code = 37
-	// 			if (constantArr.indexOf(current) === -1) {
-	// 				constantArr.push(current)
-	// 				obj.mark = constantArr.length
-	// 			} else {
-	// 				obj.mark = constantArr.indexOf(current) + 1
-	// 			}
-	// 		} else if (isIdentifier(current)) {
-	// 			obj.code = 36
-	// 			if (constantArr.indexOf(current) === -1) {
-	// 				constantArr.push(current)
-	// 				obj.mark = constantArr.length
-	// 			} else {
-	// 				obj.mark = constantArr.indexOf(current) + 1
-	// 			}
-	// 		} else {
-	// 			// obj.mark = 'string'
-	// 			//判断到不是数字也不是标识符，这里进行很严格的判断
-	// 			//放在这里错啦，要放到再外面一层循环
-	// 			// for (let j = 0, length = current.length; j < length; j++) {
-	// 			// 	let currentChar = current.substr(j, 1) //每次取出一个字符进行比较
-	// 			// 	//简单的单界符号先判断出来，先避开可能和后一个符号合成双界符的情况
-	// 			// 	// console.log(currentChar)					
-	// 			// 	singleChar(currentChar)
-	// 			// }
-	// 		}
-	// 		// obj.mark = isIdentifier(current)?'number':'几把'
-	// 	}//进行标识符，数字，字符串的判断
-	// }
-
 	//初步按空格分离扫表不是保留字的话，进行下面的骚操作
 	let keyIndex = 0
 	let mayStr = false
