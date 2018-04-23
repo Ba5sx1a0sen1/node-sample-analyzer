@@ -1,8 +1,13 @@
 let fs = require('fs')
-let str = fs.readFileSync('txt.txt', 'utf8').replace(/\n/g, ' ')
+let fileName = process.argv[2]//保存文件名
+if (!fileName) {
+	console.log('请输入文件名，比如 node index.js txt.txt')
+	process.exit(1)//退出程序
+}
+let str = fs.readFileSync(fileName, 'utf8').replace(/\n/g, ' ')
 let array = str.split(' ').filter(input => input)
 while (true) {//删掉注释先
-	if (array.indexOf('/*')===-1){
+	if (array.indexOf('/*') === -1) {
 		break
 	}
 	if (array.indexOf('/*') !== -1) {//如果找到了注释符号的起始符号
@@ -12,7 +17,7 @@ while (true) {//删掉注释先
 			array.splice(array.indexOf('/*'))
 		}
 	}
-	if(array.indexOf('/*')===-1&&array.indexOf('*/')!==-1){
+	if (array.indexOf('/*') === -1 && array.indexOf('*/') !== -1) {
 		throw new Error('你他妈瞎注释')
 	}
 }
@@ -20,11 +25,19 @@ let printArray = []
 let countArray = []
 let constantArr = []
 let printStr = ''
-let people = {
-	name: '百威',
+let people = [{
+	name: '路高乐',
 	number: '2015081086',
 	banji: '15医工计算机4'
-}
+}, {
+	name: '蔡宇森',
+	number: '2015081004',
+	banji: '15医工计算机4'
+}, {
+	name: '陈国锋',
+	number: '2015081016',
+	banji: '15医工计算机4'
+}]
 const wordHashCode = {
 	'and': 1,
 	'array': 2,
@@ -113,41 +126,85 @@ function doubleChar(str, flag) {
 			break
 	}
 }
-
-console.log(`姓名：${people.name} 班级：${people.banji} 学号：${people.number}\n\n`)
+function isInReserve(str) {
+	let flag = false
+	if (wordHashCode.hasOwnProperty(str)) {
+		flag = true
+	}
+	return flag
+}
+console.log(`姓名：${people[0].name} 班级：${people[0].banji} 学号：${people[0].number}`)
+console.log(`姓名：${people[1].name} 班级：${people[1].banji} 学号：${people[1].number}`)
+console.log(`姓名：${people[2].name} 班级：${people[2].banji} 学号：${people[2].number}\n`)
 //console.log(str)
 //console.log(array)
 for (let i = 0; i < array.length; i++) {
 	let mayReservedWord = false
 	let current = array[i]
 	let obj = {} //用来记录
-	for (key in wordHashCode) {
-		if (key === current) {
-			obj.code = wordHashCode[current]
-			obj.mark = '-'
-			mayReservedWord = true
-			break
-		} else {
-			if (isNumber(current)) {
-				obj.code = current
-				obj.mark = 'number'
-			} else if (isIdentifier(current)) {
-				obj.code = current
-				obj.mark = 'identifier'
+	if (wordHashCode.hasOwnProperty(current)) {
+		obj.code = wordHashCode[current]
+		obj.mark = '-'
+		mayReservedWord = true
+	} else {
+		if (isNumber(current)) {
+			obj.code = 37
+			if (constantArr.indexOf(current) === -1) {
+				constantArr.push(current)
+				obj.mark = constantArr.length
 			} else {
-				// obj.mark = 'string'
-				//判断到不是数字也不是标识符，这里进行很严格的判断
-				//放在这里错啦，要放到再外面一层循环
-				// for (let j = 0, length = current.length; j < length; j++) {
-				// 	let currentChar = current.substr(j, 1) //每次取出一个字符进行比较
-				// 	//简单的单界符号先判断出来，先避开可能和后一个符号合成双界符的情况
-				// 	// console.log(currentChar)					
-				// 	singleChar(currentChar)
-				// }
+				obj.mark = constantArr.indexOf(current) + 1
 			}
-			// obj.mark = isIdentifier(current)?'number':'几把'
-		}//进行标识符，数字，字符串的判断
+		} else if (isIdentifier(current)) {
+			obj.code = 36
+			if (constantArr.indexOf(current) === -1) {
+				constantArr.push(current)
+				obj.mark = constantArr.length
+			} else {
+				obj.mark = constantArr.indexOf(current) + 1
+			}
+		}
 	}
+	// for (key in wordHashCode) {
+	// 	if (key === current) {
+	// 		obj.code = wordHashCode[current]
+	// 		obj.mark = '-'
+	// 		mayReservedWord = true
+	// 		break
+	// 	} else {
+	// 		if (isInReserve(current)) {
+	// 			break
+	// 		}
+	// 		if (isNumber(current)) {
+	// 			obj.code = 37
+	// 			if (constantArr.indexOf(current) === -1) {
+	// 				constantArr.push(current)
+	// 				obj.mark = constantArr.length
+	// 			} else {
+	// 				obj.mark = constantArr.indexOf(current) + 1
+	// 			}
+	// 		} else if (isIdentifier(current)) {
+	// 			obj.code = 36
+	// 			if (constantArr.indexOf(current) === -1) {
+	// 				constantArr.push(current)
+	// 				obj.mark = constantArr.length
+	// 			} else {
+	// 				obj.mark = constantArr.indexOf(current) + 1
+	// 			}
+	// 		} else {
+	// 			// obj.mark = 'string'
+	// 			//判断到不是数字也不是标识符，这里进行很严格的判断
+	// 			//放在这里错啦，要放到再外面一层循环
+	// 			// for (let j = 0, length = current.length; j < length; j++) {
+	// 			// 	let currentChar = current.substr(j, 1) //每次取出一个字符进行比较
+	// 			// 	//简单的单界符号先判断出来，先避开可能和后一个符号合成双界符的情况
+	// 			// 	// console.log(currentChar)					
+	// 			// 	singleChar(currentChar)
+	// 			// }
+	// 		}
+	// 		// obj.mark = isIdentifier(current)?'number':'几把'
+	// 	}//进行标识符，数字，字符串的判断
+	// }
 
 	//初步按空格分离扫表不是保留字的话，进行下面的骚操作
 	let keyIndex = 0
