@@ -18,7 +18,7 @@ while (true) {//删掉注释先
 		}
 	}
 	if (array.indexOf('/*') === -1 && array.indexOf('*/') !== -1) {
-		throw new Error('你他妈瞎注释')
+		throw new Error('注释出错，请检查注释')
 	}
 }
 let printArray = []

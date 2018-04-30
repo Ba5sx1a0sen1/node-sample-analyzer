@@ -3,5 +3,5 @@ var  A,B,C:integer;
      X,Y:bool;
 begin /*  this  is  an  example  */
   A:=B*C+37; /*  this  is  an  example  */
-  X:='ABC'  
+  X:='ABC'
 end.
